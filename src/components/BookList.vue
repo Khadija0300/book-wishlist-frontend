@@ -1,22 +1,38 @@
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
-const books = ref([
-  { id: 1, title: 'Harry Potter', author: 'J. K. Rowling' },
-  { id: 2, title: 'Die Tribute von Panem', author: 'Suzanne Collins' },
-  { id: 3, title: 'Das Café am Rande der Welt', author: 'John Strelecky' },
-])
+const books = ref([])
+const error = ref('')
+
+async function loadBooks() {
+  try {
+const response = await fetch('https://book-wishlist-backend.onrender.com/books')
+    if (!response.ok) {
+      throw new Error('Bücher konnten nicht geladen werden')
+    }
+
+    books.value = await response.json()
+  } catch (err) {
+    error.value = err.message
+  }
+}
+
+onMounted(() => {
+  loadBooks()
+})
 </script>
 
 <template>
   <div>
     <h1>Meine Bücher-Wunschliste 📚</h1>
 
-    <ul>
+    <p v-if="error">{{ error }}</p>
+
+    <ul v-else>
       <li v-for="book in books" :key="book.id">
         <strong>{{ book.title }}</strong>
-        – {{ book.author }}
+        – {{ book.author }} ({{ book.priority }})
       </li>
     </ul>
   </div>
